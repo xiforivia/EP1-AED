@@ -107,12 +107,12 @@ int buscarValorID(PLISTA l, int id){
   return -1;
 }*/
 
-int consultarValorTotal(PLISTA l, int id, int tipo)
+int consultarValorTotal(PLISTA l, int id)
 {
   int x, valorTotal;
   PONT atual;
   for (x=0;x<NUMTIPOS;x++){
-    atual = l->LISTADELISTAS[tipo]->proxProd;
+    atual = l->LISTADELISTAS[x]->proxProd;
     while (atual) {
       if (atual->id == id)
       {
@@ -125,26 +125,84 @@ int consultarValorTotal(PLISTA l, int id, int tipo)
   return 0;
 }
 
-//busca auxiliar para descobrir o anterior
-PONT buscaSequencialExc(PLISTA l, int id, int tipo, int quantidade, int valor)
+int consultarQuantidade(PLISTA l, int id)
 {
-  PONT ant;
+  int x, quantidade;
+  PONT atual;
+  for (x=0;x<NUMTIPOS;x++){
+    atual = l->LISTADELISTAS[x]->proxProd;
+    while (atual) {
+      if (atual->id == id)
+      {
+        quantidade = atual->quantidade;
+        return quantidade;
+      } 
+      atual = atual->proxProd;
+    }
+  }
+  return 0;
+}
+
+int retornaTipo(PLISTA l, int id)
+{
+  int x;
+  PONT atual;
+  for (x=0;x<NUMTIPOS;x++){
+    atual = l->LISTADELISTAS[x]->proxProd;
+    while (atual) {
+      if (atual->id == id)
+      {
+        return x;
+      } 
+      atual = atual->proxProd;
+    }
+  }
+  return 0;
+}
+
+//busca auxiliar para descobrir o anterior
+PONT buscaSequencialExc(PLISTA l, int id, int tipo, int quantidade, int valor, PONT* ant)
+{
   int valorTotal;
   valorTotal = quantidade * valor;
-  ant = l->LISTADELISTAS[tipo]; //anterior do elemento atual (ao inicio é null)
+  *ant = l->LISTADELISTAS[tipo]; //anterior do elemento atual (ao inicio é null)
   PONT atual = l->LISTADELISTAS[tipo]->proxProd; //começa do primeiro elemento
   while((atual != NULL) && ((atual->quantidade * atual->valorUnitario) < valorTotal))
   {
-      ant = atual;
+      *ant = atual;
       atual = atual->proxProd;
   }
-  return ant;
+  return atual;
   // if((atual != NULL) && (atual->quantidade * atual->valorUnitario == valorTotal))
   //     return atual;
 
   //return NULL;
 }
-bool inserirNovoProduto(PLISTA l, int id, int tipo, int quantidade, int valor){
+void ordenar(PLISTA l, int tipo)
+{
+  PONT i, j, aux;
+  PONT fim = NULL;
+
+  if(l->LISTADELISTAS[tipo]->proxProd == NULL)
+    return false;
+  for(i = l->LISTADELISTAS[tipo]->proxProd; i->proxProd != NULL; i = i->proxProd)
+  {
+    for(j = l->LISTADELISTAS[tipo]->proxProd; j->proxProd != fim; j = j->proxProd)
+    {
+      if((j->quantidade * j->valorUnitario) > (j->proxProd->quantidade * j->proxProd->valorUnitario))
+      {
+        aux = j;
+        j = j->proxProd;
+        j->proxProd = aux;
+      }
+    }
+    fim = j;
+  }
+}
+
+
+bool inserirNovoProduto(PLISTA l, int id, int tipo, int quantidade, int valor)
+{
   if(buscarID(l, id) != NULL) //se ja existe
     return false;
   if(id < 0 || tipo < 0 || tipo > NUMTIPOS-1 || quantidade <= 0 || valor <= 0)
@@ -164,7 +222,7 @@ bool inserirNovoProduto(PLISTA l, int id, int tipo, int quantidade, int valor){
   }
   else //se já existir produto
   {
-    ant = buscaSequencialExc(l, id, tipo, quantidade, valor);
+    buscaSequencialExc(l, id, tipo, quantidade, valor, &ant);
 
     novo->proxProd = ant->proxProd;
     ant->proxProd = novo;
@@ -173,11 +231,44 @@ bool inserirNovoProduto(PLISTA l, int id, int tipo, int quantidade, int valor){
   return true;
 }
 
-bool removerItensDeUmProduto(PLISTA l, int id, int quantidade){
+bool removerItensDeUmProduto(PLISTA l, int id, int quantidade)
+{
+  PONT remover, ant, aux;
 
-  /* COMPLETAR */
+  remover = buscarID(l, id);
 
-  return false;
+  if(remover == NULL) //se não existe
+    return false;
+  if(quantidade <= 0 || quantidade > consultarQuantidade(l, id))
+    return false;
+
+  int tipo;
+
+  tipo = retornaTipo(l, id);
+
+  buscaSequencialExc(l, id, tipo, quantidade, remover->valorUnitario, &ant);
+
+  remover->quantidade = remover->quantidade - quantidade;
+
+  if(remover->quantidade == 0) //será apagado
+  {
+      if(ant == l->LISTADELISTAS[tipo]) //se o anterior for o nó cabeça
+        l->LISTADELISTAS[tipo]->proxProd = remover->proxProd;
+      else //se o anterior for outro produto
+        ant->proxProd = remover->proxProd;
+    free(remover);
+  }
+  else 
+  {
+    int valorTotalAtual, valorTotalAnt;
+    valorTotalAtual = remover->quantidade * remover->valorUnitario;
+    valorTotalAnt = ant->quantidade * ant->valorUnitario;
+    if(remover->quantidade * remover->valorUnitario < ant->quantidade * ant->valorUnitario)
+    {
+     //troca de poisção (só deus sabe como)
+    }
+  }
+  return true;
 }
 
 
@@ -192,12 +283,13 @@ bool atualizarValorDoProduto(PLISTA l, int id, int valor){
 int main()
 {
   PLISTA f = criarLista();
-  int id;
-  int tipo;
-  int quantidade;
-  int valor;
-  int valortotal;
-  bool res;
+  // int id;
+  // int tipo;
+  // int quantidade;
+  // int valor;
+   int valortotal = 0;
+   int tipo = -1;
+  // bool res;
   
   if(inserirNovoProduto(f, 0, 1, 10, 50) == true)
     printf("true\n");
@@ -224,8 +316,14 @@ int main()
   else
     printf("false\n");
 
-  valortotal = consultarValorTotal(f, 3, 1);
+  valortotal = consultarValorTotal(f, 3);
   printf("%i\n", valortotal);
+
+  tipo = retornaTipo(f, 3);
+  printf("%i\n", tipo);
+
+
+
 
   PONT end = f->LISTADELISTAS[1]->proxProd; //começando do primeiro endereço válido
     printf("Lista: \" ");
@@ -238,6 +336,21 @@ int main()
     }
     printf("\"\n");
 
+  if(removerItensDeUmProduto(f, 0, 9) == true)
+    printf("true\n");
+  else
+    printf("false\n");
+
+  end = f->LISTADELISTAS[1]->proxProd; //começando do primeiro endereço válido
+    printf("Lista: \" ");
+    while(end != NULL) //enquanto o endereço for diferente de null
+    {
+        printf("%i ", end->id); //imprime a chave atual
+        printf("%i ", end->quantidade);
+        printf("%i ", end->valorUnitario);
+        end = end->proxProd; //o endereço recebe o próximo
+    }
+    printf("\"\n");
 
   return 0;
 }

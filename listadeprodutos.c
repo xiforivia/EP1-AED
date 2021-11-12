@@ -181,7 +181,7 @@ bool inserirNovoProduto(PLISTA l, int id, int tipo, int quantidade, int valor)
 {
   if(buscarID(l, id) != NULL) //se ja existe
     return false;
-  if(id < 0 || tipo < 0 || tipo > NUMTIPOS-1 || quantidade <= 0 || valor <= 0)
+  if(id <= 0 || tipo < 0 || tipo >= NUMTIPOS-1 || quantidade <= 0 || valor <= 0)
      return false;
   
   PONT novo, ant;
@@ -265,12 +265,12 @@ bool atualizarValorDoProduto(PLISTA l, int id, int valor)
     return false;
   if(valor <= 0)
     return false;
-
-  atualizar->valorUnitario = valor;
-
+     
   int tipo = retornaTipo(l, id);
 
   ant = buscaSequencialAtualizar(l, id, tipo, atualizar->quantidade, atualizar->valorUnitario);
+
+  atualizar->valorUnitario = valor;
 
   int qtde = atualizar->quantidade;
   
@@ -286,9 +286,10 @@ bool atualizarValorDoProduto(PLISTA l, int id, int valor)
 
   return true;
 }
-/*
+  /*
 int main()
 {
+
   PLISTA f = criarLista();
   // int id;
   // int tipo;
@@ -330,8 +331,6 @@ int main()
   printf("%i\n", tipo);
 
 
-
-
   PONT end = f->LISTADELISTAS[1]->proxProd; //começando do primeiro endereço válido
     printf("Lista: \" ");
     while(end != NULL) //enquanto o endereço for diferente de null
@@ -359,7 +358,7 @@ int main()
     }
     printf("\"\n");
 
-    if(atualizarValorDoProduto(f, 1, 600) == true)
+    if(atualizarValorDoProduto(f, 2, 600) == true)
     printf("true\n");
   else
     printf("false\n");
@@ -375,6 +374,19 @@ int main()
     }
     printf("\"\n");
 
+
+  PLISTA f = criarLista();
+  inserirNovoProduto(f, 300, 4, 3, 3);
+  inserirNovoProduto(f, 1, 2, 4, 1);
+  inserirNovoProduto(f, 5, 2, 3, 2);
+  inserirNovoProduto(f, 9, 2, 11, 3);
+
+  bool res = atualizarValorDoProduto(f, 5, 11);
+  exibirLog(f);
+  res = atualizarValorDoProduto(f, 5, 12);
+  exibirLog(f);
+  res = atualizarValorDoProduto(f, 5, 1);
+  exibirLog(f);
   return 0;
 }
 */

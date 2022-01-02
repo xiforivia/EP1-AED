@@ -5,7 +5,6 @@
 /**                                                                 **/
 /**   EP 1 - Lista Ligada de Produtos                               **/
 /**                                                                 **/
-/**   <Juliana de Faria Duarte Ribeiro>         <12684969>          **/
 /**                                                                 **/
 /*********************************************************************/
 #include "listadeprodutos.h"
